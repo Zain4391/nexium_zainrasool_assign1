@@ -1,103 +1,203 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import TodoForm from "@/components/TodoForm";
+import TodoList from "@/components/TodoList";
+import TodoFilters from "@/components/TodoFilters";
+
+interface Todo {
+  _id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  priority: "low" | "medium" | "high";
+  dueDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function Dashboard() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    search: "",
+    priority: "all",
+    completed: "all",
+    sort: "createdAt",
+    order: "desc",
+  });
+
+  // Redirect to signin if not authenticated
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      router.push("/auth/signin");
+    }
+  }, [session, status, router]);
+
+  // Fetch todos
+  const fetchTodos = async () => {
+    try {
+      const params = new URLSearchParams(filters);
+      const response = await fetch(`/api/todos?${params}`);
+
+      if (response.ok) {
+        const data = await response.json();
+        setTodos(data.todos);
+      }
+    } catch (error) {
+      console.error("Error fetching todos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+      fetchTodos();
+    }
+  }, [session, filters]);
+
+  // Add new todo
+  const addTodo = async (
+    todoData: Omit<Todo, "_id" | "createdAt" | "updatedAt">
+  ) => {
+    try {
+      const response = await fetch("/api/todos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(todoData),
+      });
+
+      if (response.ok) {
+        fetchTodos(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error adding todo:", error);
+    }
+  };
+
+  // Update todo
+  const updateTodo = async (id: string, updates: Partial<Todo>) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      if (response.ok) {
+        fetchTodos(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error updating todo:", error);
+    }
+  };
+
+  // Delete todo
+  const deleteTodo = async (id: string) => {
+    try {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        fetchTodos(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error deleting todo:", error);
+    }
+  };
+
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!session) {
+    return null;
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Todo App</h1>
+              <p className="text-sm text-gray-600">
+                Welcome back, {session.user?.name}!
+              </p>
+            </div>
+            <button
+              onClick={() => signOut()}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+            >
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Add Todo Form */}
+            <div className="lg:col-span-1">
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    Add New Todo
+                  </h3>
+                  <TodoForm onSubmit={addTodo} />
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Todo List */}
+            <div className="lg:col-span-2">
+              <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="px-4 py-5 sm:p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Your Todos ({todos.length})
+                    </h3>
+                  </div>
+
+                  {/* Filters */}
+                  <TodoFilters filters={filters} onFilterChange={setFilters} />
+
+                  {/* Todo List */}
+                  {loading ? (
+                    <div className="text-center py-8">Loading todos...</div>
+                  ) : (
+                    <TodoList
+                      todos={todos}
+                      onUpdate={updateTodo}
+                      onDelete={deleteTodo}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
