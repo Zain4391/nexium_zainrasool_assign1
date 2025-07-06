@@ -34,7 +34,8 @@ export default function SignupPage() {
       } else {
         setError(data.error || "Something went wrong");
       }
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError("Network error. Please try again.");
     } finally {
       setLoading(false);

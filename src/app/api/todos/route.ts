@@ -3,6 +3,16 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import Todo from "@/models/Todo";
 
+interface TodoQuery {
+  userId: string;
+  $or?: Array<
+    | { title: { $regex: string; $options: string } }
+    | { description: { $regex: string; $options: string } }
+  >;
+  priority?: string;
+  completed?: boolean;
+}
+
 // GET /api/todos - Get all todos for logged-in user
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +33,7 @@ export async function GET(request: NextRequest) {
     const order = searchParams.get("order") || "desc";
 
     // Build query
-    const query: any = { userId: session.user.id };
+    const query: TodoQuery = { userId: session.user.id };
 
     // Add search filter
     if (search) {
@@ -62,17 +72,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    if (!session?.user?.email) {
-      console.log("No session or email found");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
-    if (!session?.user?.id) {
-      console.log("No user ID in session");
-      return NextResponse.json(
-        { error: "User ID missing from session" },
-        { status: 401 }
-      );
+    if (!session?.user?.email || !session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { title, description, priority, dueDate } = await request.json();
@@ -83,15 +85,13 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    const todoData = {
+    const todo = await Todo.create({
       title,
       description,
       priority: priority || "medium",
       dueDate: dueDate ? new Date(dueDate) : undefined,
       userId: session.user.id,
-    };
-
-    const todo = await Todo.create(todoData);
+    });
 
     return NextResponse.json({ todo }, { status: 201 });
   } catch (error) {

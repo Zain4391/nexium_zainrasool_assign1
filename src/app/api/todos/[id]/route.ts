@@ -3,6 +3,14 @@ import { auth } from "@/lib/auth";
 import connectDB from "@/lib/mongodb";
 import Todo from "@/models/Todo";
 
+interface TodoUpdateData {
+  title?: string;
+  description?: string;
+  completed?: boolean;
+  priority?: string;
+  dueDate?: Date;
+}
+
 // GET /api/todos/[id] - Get single todo
 export async function GET(
   request: NextRequest,
@@ -11,7 +19,7 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -44,7 +52,7 @@ export async function PUT(
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -53,20 +61,20 @@ export async function PUT(
 
     await connectDB();
 
-    const id: any = await params;
+    const updateData: TodoUpdateData = {
+      title,
+      description,
+      completed,
+      priority,
+      dueDate: dueDate ? new Date(dueDate) : undefined,
+    };
 
     const todo = await Todo.findOneAndUpdate(
       {
-        _id: id.id,
+        _id: params.id,
         userId: session.user.id,
       },
-      {
-        title,
-        description,
-        completed,
-        priority,
-        dueDate: dueDate ? new Date(dueDate) : undefined,
-      },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -92,7 +100,7 @@ export async function DELETE(
   try {
     const session = await auth();
 
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

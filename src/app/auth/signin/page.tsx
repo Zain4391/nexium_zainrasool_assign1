@@ -33,7 +33,8 @@ export default function SigninPage() {
         router.push("/");
         router.refresh();
       }
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -114,7 +115,7 @@ export default function SigninPage() {
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/signup"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
