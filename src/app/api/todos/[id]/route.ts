@@ -14,7 +14,7 @@ interface TodoUpdateData {
 // GET /api/todos/[id] - Get single todo
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -23,10 +23,12 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await connectDB();
 
     const todo = await Todo.findOne({
-      _id: params.id,
+      _id: id,
       userId: session.user.id,
     });
 
@@ -47,7 +49,7 @@ export async function GET(
 // PUT /api/todos/[id] - Update todo
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -56,6 +58,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const { title, description, completed, priority, dueDate } =
       await request.json();
 
@@ -71,7 +74,7 @@ export async function PUT(
 
     const todo = await Todo.findOneAndUpdate(
       {
-        _id: params.id,
+        _id: id,
         userId: session.user.id,
       },
       updateData,
@@ -95,7 +98,7 @@ export async function PUT(
 // DELETE /api/todos/[id] - Delete todo
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -104,10 +107,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
+
     await connectDB();
 
     const todo = await Todo.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       userId: session.user.id,
     });
 
