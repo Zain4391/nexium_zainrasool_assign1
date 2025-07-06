@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import TodoForm from "@/components/TodoForm";
 import TodoList from "@/components/TodoList";
 import TodoFilters from "@/components/TodoFilters";
@@ -40,7 +40,7 @@ export default function Dashboard() {
   }, [session, status, router]);
 
   // Fetch todos
-  const fetchTodos = async () => {
+  const fetchTodos = useCallback(async () => {
     try {
       const params = new URLSearchParams(filters);
       const response = await fetch(`/api/todos?${params}`);
@@ -54,13 +54,13 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
   useEffect(() => {
     if (session) {
       fetchTodos();
     }
-  }, [session, filters]);
+  }, [session, fetchTodos]);
 
   // Add new todo
   const addTodo = async (

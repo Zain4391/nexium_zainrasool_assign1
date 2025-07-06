@@ -51,7 +51,7 @@ export default function TodoFilters({
             value={filters.search}
             onChange={(e) => updateFilter("search", e.target.value)}
             placeholder="Search todos..."
-            className="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           />
         </div>
 
@@ -67,7 +67,7 @@ export default function TodoFilters({
             id="priority"
             value={filters.priority}
             onChange={(e) => updateFilter("priority", e.target.value)}
-            className="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           >
             <option value="all">All Priorities</option>
             <option value="high">High</option>
@@ -88,7 +88,7 @@ export default function TodoFilters({
             id="completed"
             value={filters.completed}
             onChange={(e) => updateFilter("completed", e.target.value)}
-            className="text-gray-600 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
           >
             <option value="all">All Todos</option>
             <option value="false">Active</option>
@@ -109,7 +109,7 @@ export default function TodoFilters({
               id="sort"
               value={filters.sort}
               onChange={(e) => updateFilter("sort", e.target.value)}
-              className="text-gray-600 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             >
               <option value="createdAt">Created Date</option>
               <option value="title">Title</option>
@@ -119,7 +119,7 @@ export default function TodoFilters({
             <select
               value={filters.order}
               onChange={(e) => updateFilter("order", e.target.value)}
-              className="text-gray-600 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
             >
               <option value="desc">↓</option>
               <option value="asc">↑</option>
@@ -146,7 +146,7 @@ export default function TodoFilters({
           <span className="text-sm text-gray-600">Active filters:</span>
           {filters.search && (
             <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-              Search: "{filters.search}"
+              Search: &quot;{filters.search}&quot;
             </span>
           )}
           {filters.priority !== "all" && (
